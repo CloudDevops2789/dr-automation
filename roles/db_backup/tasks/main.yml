@@ -1,0 +1,23 @@
+- name: Generate timestamp
+  set_fact:
+    backup_file: "/tmp/dr_app_{{ ansible_date_time.iso8601 }}.sql"
+
+- name: Take MySQL backup
+  shell: mysqldump -u {{ db_user }} -p{{ db_password }} {{ db_name }} > {{ backup_file }}
+
+# Upload to NORMAL S3 (uses AWX credential)
+- name: Upload backup to normal S3
+  shell: aws s3 cp {{ backup_file }} s3://{{ s3_bucket }}/
+
+# Upload to SECURE S3 (separate credential)
+- name: Upload backup to secure S3
+  shell: aws s3 cp {{ backup_file }} s3://{{ vault_bucket }}/
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ aws_secure_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ aws_secure_secret_key }}"
+    AWS_DEFAULT_REGION: "{{ aws_region }}"
+
+- name: Cleanup local backup
+  file:
+    path: "{{ backup_file }}"
+    state: absent

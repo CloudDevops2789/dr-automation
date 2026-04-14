@@ -1,0 +1,5 @@
+s3_bucket: dr-backup-project007
+vault_bucket: sh-harbor-vault-007
+db_name: dr_app
+db_user: appuser
+aws_region: ap-south-1
