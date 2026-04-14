@@ -1,4 +1,4 @@
-- hosts: onprem
+- hosts: onprem-server
   become: yes
 
   roles:
