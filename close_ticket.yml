@@ -1,0 +1,119 @@
+- name: Close ServiceNow Incident
+  hosts: localhost
+  gather_facts: no
+
+  vars:
+    snow_instance: "https://dev290059.service-now.com"
+
+  tasks:
+
+    # -----------------------------
+    # Validate input
+    # -----------------------------
+    - name: Validate required variables
+      fail:
+        msg: "Missing incident_number or incident_sys_id"
+      when:
+        - incident_number is not defined or incident_number | length == 0
+        - incident_sys_id is not defined or incident_sys_id | length == 0
+
+    - name: Print incident details
+      debug:
+        msg: "Processing incident {{ incident_number }}"
+
+    # -----------------------------
+    # Get current state
+    # -----------------------------
+    - name: Get incident details
+      uri:
+        url: "{{ snow_instance }}/api/now/table/incident/{{ incident_sys_id }}"
+        method: GET
+        user: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        force_basic_auth: yes
+        headers:
+          Accept: "application/json"
+        status_code: 200
+      register: incident_data
+
+    - name: Extract state info
+      set_fact:
+        current_state: "{{ incident_data.json.result.incident_state }}"
+        current_active: "{{ incident_data.json.result.active }}"
+
+    - name: Debug current state
+      debug:
+        msg: "State={{ current_state }}, Active={{ current_active }}"
+
+    # -----------------------------
+    # Skip if already closed
+    # -----------------------------
+    - name: Skip if already closed
+      debug:
+        msg: "Incident already closed"
+      when: current_active == "false"
+
+    # -----------------------------
+    # Move to In Progress
+    # -----------------------------
+    - name: Move to In Progress
+      uri:
+        url: "{{ snow_instance }}/api/now/table/incident/{{ incident_sys_id }}"
+        method: PATCH
+        user: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        force_basic_auth: yes
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          incident_state: "2"
+        status_code: [200, 201]
+      when: current_active == "true" and current_state not in ["6", "7"]
+
+    # -----------------------------
+    # Resolve incident
+    # -----------------------------
+    - name: Resolve incident
+      uri:
+        url: "{{ snow_instance }}/api/now/table/incident/{{ incident_sys_id }}"
+        method: PATCH
+        user: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        force_basic_auth: yes
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          incident_state: "6"
+          state: "6"
+          close_code: "Solution provided"
+          close_notes: "DR completed successfully via AWX"
+        status_code: [200, 201]
+      when: current_active == "true" and current_state not in ["6", "7"]
+
+    # -----------------------------
+    # Close incident
+    # -----------------------------
+    - name: Close incident
+      uri:
+        url: "{{ snow_instance }}/api/now/table/incident/{{ incident_sys_id }}"
+        method: PATCH
+        user: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        force_basic_auth: yes
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          incident_state: "7"
+          state: "7"
+        status_code: [200, 201]
+      when: current_active == "true"
+
+    # -----------------------------
+    # Final confirmation
+    # -----------------------------
+    - name: Confirm closure
+      debug:
+        msg: "Incident {{ incident_number }} processed successfully"
