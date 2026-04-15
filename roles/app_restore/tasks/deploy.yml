@@ -8,6 +8,23 @@
     src: index.php
     dest: /var/www/html/index.php
     mode: '0644'
+# this health check php will trigger after restoration
+- name: Create health.php file
+  copy:
+    dest: /var/www/html/health.php
+    mode: '0644'
+    content: |
+      <?php
+      $conn = new mysqli("localhost", "{{ db_user }}", "{{ db_password }}", "{{ db_name }}");
+
+      if ($conn->connect_error) {
+          http_response_code(500);
+          echo "DB FAILED";
+          exit;
+      }
+
+      echo "OK";
+      ?>
 
 - name: Set correct permissions
   file:
