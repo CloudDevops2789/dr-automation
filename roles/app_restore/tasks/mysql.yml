@@ -9,19 +9,19 @@
 # ---------------------------
 
 - name: Drop existing database (clean restore)
-  mysql_db:
+  community.mysql.mysql_db:
     name: "{{ db_name }}"
     state: absent
     login_unix_socket: /var/run/mysqld/mysqld.sock
 
 - name: Recreate database
-  mysql_db:
+  community.mysql.mysql_db:
     name: "{{ db_name }}"
     state: present
     login_unix_socket: /var/run/mysqld/mysqld.sock
 
 - name: Create DB user
-  mysql_user:
+  community.mysql.mysql_user:
     name: "{{ db_user }}"
     password: "{{ db_password }}"
     priv: "{{ db_name }}.*:ALL"
@@ -67,7 +67,7 @@
 # ---------------------------
 
 - name: Restore database from backup
-  mysql_db:
+  community.mysql.mysql_db:
     name: "{{ db_name }}"
     state: import
     target: "{{ dump_file }}"
