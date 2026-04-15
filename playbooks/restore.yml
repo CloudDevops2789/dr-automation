@@ -1,5 +1,5 @@
 - name: DR Restore - Web + DB
-  hosts: dr_servers
+  hosts: "{{ target_host }}"
   become: yes
 
   roles:
