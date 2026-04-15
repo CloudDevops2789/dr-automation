@@ -1,0 +1,23 @@
+- name: DR Health Check
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+
+    - name: Print received variables
+      debug:
+        msg: "Checking health for {{ ec2_public_ip }}"
+
+    - name: Wait for app + DB health
+      uri:
+        url: http://{{ ec2_public_ip }}/health.php
+        method: GET
+        status_code: 200
+      register: health_check
+      retries: 5
+      delay: 10
+      until: health_check.status == 200
+
+    - name: Show health check result
+      debug:
+        var: health_check.status
