@@ -39,7 +39,7 @@
     - name: Extract state info
       set_fact:
         current_state: "{{ incident_data.json.result.incident_state }}"
-        current_active: "{{ incident_data.json.result.active }}"
+        current_active: "{{ incident_data.json.result.active | bool }}"
 
     - name: Debug current state
       debug:
@@ -51,7 +51,7 @@
     - name: Skip if already closed
       debug:
         msg: "Incident already closed"
-      when: current_active == "false"
+      when: not current_active
 
     # -----------------------------
     # Move to In Progress
@@ -69,7 +69,7 @@
         body:
           incident_state: "2"
         status_code: [200, 201]
-      when: current_active == "true" and current_state not in ["6", "7"]
+      when: current_active and current_state not in ["6", "7"]
 
     # -----------------------------
     # Resolve incident
@@ -90,7 +90,7 @@
           close_code: "Solution provided"
           close_notes: "DR completed successfully via AWX"
         status_code: [200, 201]
-      when: current_active == "true" and current_state not in ["6", "7"]
+      when: current_active and current_state not in ["6", "7"]
 
     # -----------------------------
     # Close incident
@@ -109,7 +109,7 @@
           incident_state: "7"
           state: "7"
         status_code: [200, 201]
-      when: current_active == "true"
+      when: current_active
 
     # -----------------------------
     # Final confirmation
