@@ -1,14 +1,19 @@
 - name: DR Restore - Web + DB
-  hosts: localhost
-  connection: local
+  hosts: all
   gather_facts: no
+  become: yes
 
   tasks:
 
-    - name: Run restore role on target EC2
-      include_role:
-        name: app_restore
-      vars:
-        ansible_host: "{{ target_host }}"
+    - name: Add dynamic host
+      add_host:
+        name: "{{ target_host }}"
+        groups: dr_dynamic
         ansible_user: ubuntu
-      delegate_to: "{{ target_host }}"
+
+- name: Run restore on dynamic host
+  hosts: dr_dynamic
+  become: yes
+
+  roles:
+    - app_restore
