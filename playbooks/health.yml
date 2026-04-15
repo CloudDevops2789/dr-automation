@@ -6,11 +6,11 @@
 
     - name: Print received variables
       debug:
-        msg: "Checking health for {{ ec2_public_ip }}"
+        msg: "Checking health for {{ target_host }}"
 
     - name: Wait for app + DB health
       uri:
-        url: http://{{ ec2_public_ip }}/health.php
+        url: "http://{{ target_host }}/health.php"
         method: GET
         status_code: 200
       register: health_check
