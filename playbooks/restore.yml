@@ -1,6 +1,14 @@
 - name: DR Restore - Web + DB
-  hosts: "{{ target_host }}"
-  become: yes
+  hosts: localhost
+  connection: local
+  gather_facts: no
 
-  roles:
-    - app_restore
+  tasks:
+
+    - name: Run restore role on target EC2
+      include_role:
+        name: app_restore
+      vars:
+        ansible_host: "{{ target_host }}"
+        ansible_user: ubuntu
+      delegate_to: "{{ target_host }}"
