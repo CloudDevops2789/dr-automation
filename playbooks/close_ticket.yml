@@ -1,0 +1,33 @@
+- name: Close ServiceNow Incident
+  hosts: localhost
+  gather_facts: no
+
+  vars:
+    snow_instance: "https://dev290059.service-now.com"   # your instance
+
+  tasks:
+
+    - name: Print incident details
+      debug:
+        msg: "Closing incident {{ incident_number }}"
+
+    - name: Close incident in ServiceNow
+      uri:
+        url: "{{ snow_instance }}/api/now/table/incident/{{ incident_sys_id }}"
+        method: PATCH
+        user: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        force_basic_auth: yes
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          state: "7"
+          close_code: "Resolved by automation"
+          close_notes: "DR completed successfully via AWX"
+        status_code: 200
+      register: result
+
+    - name: Show response
+      debug:
+        var: result.json
