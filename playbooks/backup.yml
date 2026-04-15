@@ -1,5 +1,31 @@
-- hosts: onprem-server
+- name: Backup from On-Prem (DR-aware)
+  hosts: onprem-server
   become: yes
+  gather_facts: no
 
-  roles:
-    - db_backup
+  tasks:
+
+    # -----------------------------
+    # Check connectivity FIRST
+    # -----------------------------
+    - name: Check if on-prem is reachable
+      wait_for_connection:
+        timeout: 5
+      register: conn_check
+      ignore_errors: yes
+
+    # -----------------------------
+    # If unreachable → don't fail
+    # -----------------------------
+    - name: Skip backup (expected in DR)
+      debug:
+        msg: "On-prem unreachable — skipping backup (expected DR scenario)"
+      when: conn_check is failed
+
+    # -----------------------------
+    # Run backup ONLY if reachable
+    # -----------------------------
+    - name: Run DB backup role
+      include_role:
+        name: db_backup
+      when: conn_check is succeeded
