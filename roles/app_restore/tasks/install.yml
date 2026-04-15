@@ -1,0 +1,21 @@
+- name: Install required packages
+  apt:
+    name:
+      - apache2
+      - mysql-server
+      - php
+      - php-mysql
+    state: present
+    update_cache: yes
+# Added below for error A MySQL module is required: for Python 2.7 either PyMySQL, or MySQL-python, or for Python 3.X mysqlclient or PyMySQL. Consider setting ansible_python_interpreter      
+- name: Install PyMySQL (required for Ansible MySQL modules)
+  apt:
+    name: python3-pymysql
+    state: present
+# Added below for error Failed to import the required Python library (botocore and boto3
+- name: Install boto3 and botocore (required for S3)
+  apt:
+    name:
+      - python3-boto3
+      - python3-botocore
+    state: present

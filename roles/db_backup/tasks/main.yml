@@ -17,7 +17,7 @@
     AWS_SECRET_ACCESS_KEY: "{{ aws_secure_secret_key }}"
     AWS_DEFAULT_REGION: "{{ aws_region }}"
 
-- name: Cleanup local backup
-  file:
-    path: "{{ backup_file }}"
-    state: absent
+#- name: Cleanup local backup
+#  file:
+#    path: "{{ backup_file }}"
+#    state: absent

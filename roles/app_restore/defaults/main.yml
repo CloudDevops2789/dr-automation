@@ -1,0 +1,4 @@
+db_name: drdb
+db_user: druser
+db_password: drpass
+dump_file: /tmp/db_backup.sql

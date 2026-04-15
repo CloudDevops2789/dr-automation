@@ -1,0 +1,74 @@
+- name: Ensure MySQL is running
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+# ---------------------------
+# DB SETUP (clean restore)
+# ---------------------------
+
+- name: Drop existing database (clean restore)
+  mysql_db:
+    name: "{{ db_name }}"
+    state: absent
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Recreate database
+  mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create DB user
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    priv: "{{ db_name }}.*:ALL"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+# ---------------------------
+# S3 BACKUP FETCH
+# ---------------------------
+
+- name: Get list of backup files from S3
+  amazon.aws.aws_s3:
+    bucket: sh-harbor-vault-007
+    mode: list
+  register: s3_files
+
+- name: Filter only SQL files
+  set_fact:
+    sql_files: "{{ s3_files.s3_keys | select('match', '.*\\.sql$') | list }}"
+
+- name: Fail if no backups found
+  fail:
+    msg: "No SQL backup files found in S3 bucket"
+  when: sql_files | length == 0
+
+- name: Select latest backup file
+  set_fact:
+    latest_backup: "{{ (sql_files | sort)[-1] }}"
+
+- name: Debug latest backup
+  debug:
+    msg: "Latest backup selected: {{ latest_backup }}"
+
+- name: Download latest backup from S3
+  amazon.aws.aws_s3:
+    bucket: sh-harbor-vault-007
+    object: "{{ latest_backup }}"
+    dest: "{{ dump_file }}"
+    mode: get
+
+# ---------------------------
+# DB RESTORE
+# ---------------------------
+
+- name: Restore database from backup
+  mysql_db:
+    name: "{{ db_name }}"
+    state: import
+    target: "{{ dump_file }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
