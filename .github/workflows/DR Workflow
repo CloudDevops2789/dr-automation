@@ -1,0 +1,19 @@
+name: Trigger AWX DR Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  trigger-dr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger AWX DR Workflow
+        run: |
+          RESPONSE=$(curl -k -X POST "${{ secrets.AWX_URL }}/api/v2/workflow_job_templates/21/launch/" \
+          -u "${{ secrets.AWX_USERNAME }}:${{ secrets.AWX_PASSWORD }}" \
+          -H "Content-Type: application/json" \
+          -d '{}')
+
+          echo "AWX RESPONSE:"
+          echo "$RESPONSE"
