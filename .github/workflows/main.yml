@@ -1,11 +1,13 @@
-name: Test Secret
+name: Test AWX Secret
 
 on:
   workflow_dispatch:
 
 jobs:
-  test:
+  test-awx:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Print AWX URL
-        run: echo "${{ secrets.AWX_URL }}"
+      - name: Test AWX connectivity
+        run: |
+          curl -k "${{ secrets.AWX_URL }}"
