@@ -1,9 +1,17 @@
+- name: Ensure env is explicitly set
+  fail:
+    msg: "env variable must be explicitly set (test/prod)"
+  when: env == "dev"
+
 - name: Generate timestamp
   set_fact:
-    backup_file: "/tmp/dr_app_{{ ansible_date_time.iso8601 }}.sql"
+    backup_file: "/tmp/dr_app_{{ ansible_date_time.iso8601_basic }}.sql"
 
 - name: Take MySQL backup
   shell: mysqldump -u {{ db_user }} -p{{ db_password }} {{ db_name }} > {{ backup_file }}
+
+- debug:
+    msg: "Using buckets {{ s3_bucket }} and {{ vault_bucket }}"
 
 # Upload to NORMAL S3 (uses AWX credential)
 - name: Upload backup to normal S3
