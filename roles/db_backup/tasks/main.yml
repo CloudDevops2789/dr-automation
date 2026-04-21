@@ -7,6 +7,9 @@
   set_fact:
     backup_file: "/tmp/dr_app_{{ ansible_date_time.iso8601_basic }}.sql"
 
+- debug:
+    msg: "DB_PASSWORD is {{ lookup('env','DB_PASSWORD') }}"
+
 - name: Take MySQL backup
   shell: mysqldump -u {{ db_user }} -p{{ lookup('env','DB_PASSWORD') }} {{ db_name }} > {{ backup_file }}
 
