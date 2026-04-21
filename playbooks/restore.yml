@@ -1,7 +1,6 @@
-- name: DR Restore - Web + DB
-  hosts: all
+- name: DR Restore - Prepare dynamic host
+  hosts: localhost
   gather_facts: no
-  become: yes
 
   tasks:
 
@@ -10,6 +9,13 @@
         name: "{{ target_host }}"
         groups: dr_dynamic
         ansible_user: ubuntu
+
+    - name: Wait for SSH to be ready
+      wait_for:
+        host: "{{ target_host }}"
+        port: 22
+        delay: 10
+        timeout: 300
 
 - name: Run restore on dynamic host
   hosts: dr_dynamic
