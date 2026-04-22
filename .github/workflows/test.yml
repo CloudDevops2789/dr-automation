@@ -1,0 +1,29 @@
+name: DR Test Pipeline
+
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  validate-and-trigger:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: Syntax Check All Playbooks
+        run: |
+          ansible-playbook playbooks/backup.yml --syntax-check
+          ansible-playbook playbooks/restore.yml --syntax-check
+          ansible-playbook playbooks/health.yml --syntax-check
+
+      - name: Trigger AWX TEST Workflow
+        run: |
+          curl -k -X POST https://attempt-headphone-qualify.ngrok-free.dev/api/v2/workflow_job_templates/27/launch/ \
+          -H "Authorization: Bearer ${{ secrets.AWX_TOKEN }}" \
+          -H "Content-Type: application/json"
