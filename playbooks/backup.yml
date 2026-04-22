@@ -1,7 +1,7 @@
 - name: Backup from On-Prem (DR-aware)
   hosts: onprem-server
   become: yes
-  gather_facts: yes
+  gather_facts: no
 
   tasks:
 
@@ -10,7 +10,7 @@
     # -----------------------------
     - name: Check if on-prem is reachable
       wait_for_connection:
-        timeout: 5
+        timeout: 10
       register: conn_check
       ignore_errors: yes
 
@@ -21,7 +21,10 @@
       debug:
         msg: "On-prem unreachable — skipping backup (expected DR scenario)"
       when: conn_check is failed
-
+      
+    - name: Gather facts (only if reachable)
+      setup:
+      when: conn_check is succeeded
     # -----------------------------
     # Run backup ONLY if reachable
     # -----------------------------
