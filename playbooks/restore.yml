@@ -3,7 +3,21 @@
   gather_facts: no
 
   tasks:
+    # -----------------------------
+    # Validate environment variable FIRST
+    # (prevents accidental prod backup to non-prod buckets)
+    # -----------------------------
+    - name: Validate environment variable
+      assert:
+        that:
+          - env is defined
+          - env in ['dev', 'test', 'prod']
+        fail_msg: "env variable is missing or invalid"
 
+    - name: Show environment
+      debug:
+        msg: "Running in environment: {{ env }}"
+        
     - name: Add dynamic host
       add_host:
         name: "{{ target_host }}"

@@ -3,8 +3,23 @@
   become: yes
   gather_facts: no
 
-  tasks:
 
+  tasks:
+    # -----------------------------
+    # Validate environment variable FIRST
+    # (prevents accidental prod backup to non-prod buckets)
+    # -----------------------------
+    - name: Validate environment variable
+      assert:
+        that:
+          - env is defined
+          - env in ['dev', 'test', 'prod']
+        fail_msg: "env variable is missing or invalid"
+
+    - name: Show environment
+      debug:
+        msg: "Running in environment: {{ env }}"
+        
     # -----------------------------
     # Check connectivity FIRST
     # -----------------------------
@@ -21,7 +36,7 @@
       debug:
         msg: "On-prem unreachable — skipping backup (expected DR scenario)"
       when: conn_check is failed
-      
+
     - name: Gather facts (only if reachable)
       setup:
       when: conn_check is succeeded

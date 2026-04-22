@@ -6,10 +6,25 @@
     snow_instance: "https://dev290059.service-now.com"
 
   tasks:
+    # -----------------------------
+    # Validate environment variable FIRST
+    # (prevents accidental prod backup to non-prod buckets)
+    # -----------------------------
+    - name: Validate environment variable
+      assert:
+        that:
+          - env is defined
+          - env in ['dev', 'test', 'prod']
+        fail_msg: "env variable is missing or invalid"
 
+    - name: Show environment
+      debug:
+        msg: "Running in environment: {{ env }}"
+        
     # -----------------------------
     # Validate input
     # -----------------------------
+    
     - name: Validate required variables
       fail:
         msg: "Missing incident_number or incident_sys_id"
