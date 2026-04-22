@@ -34,7 +34,7 @@
 
 - name: Get list of backup files from S3
   amazon.aws.aws_s3:
-    bucket: sh-harbor-vault-007
+    bucket: "{{ vault_bucket}}"
     mode: list
   register: s3_files
 
@@ -57,7 +57,7 @@
 
 - name: Download latest backup from S3
   amazon.aws.aws_s3:
-    bucket: sh-harbor-vault-007
+    bucket: "{{ vault_bucket}}"
     object: "{{ latest_backup }}"
     dest: "{{ dump_file }}"
     mode: get

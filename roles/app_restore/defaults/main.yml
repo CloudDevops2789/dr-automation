@@ -2,3 +2,9 @@ db_name: drdb
 db_user: druser
 db_password: drpass
 dump_file: /tmp/db_backup.sql
+# Environment identifier (set from AWX: test / prod)
+env: "{{ env | default('dev') }}"
+
+# Use base bucket for prod, suffix for non-prod environments
+s3_bucket: "{{ 'dr-backup-project007' if env == 'prod' else 'dr-backup-project007-' ~ env }}"
+vault_bucket: "{{ 'sh-harbor-vault-007' if env == 'prod' else 'sh-harbor-vault-007-' ~ env }}"
