@@ -4,9 +4,10 @@ on:
   push:
     branches:
       - development
+  workflow_dispatch:   #  manual trigger added
 
 jobs:
-  validate-and-trigger:
+  validate:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,6 +23,12 @@ jobs:
           ansible-playbook playbooks/restore.yml --syntax-check
           ansible-playbook playbooks/health.yml --syntax-check
 
+  dr-test:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'workflow_dispatch'   #  KEY LINE
+
+    steps:
       - name: Trigger AWX TEST Workflow
         run: |
           curl -k -X POST https://attempt-headphone-qualify.ngrok-free.dev/api/v2/workflow_job_templates/27/launch/ \
