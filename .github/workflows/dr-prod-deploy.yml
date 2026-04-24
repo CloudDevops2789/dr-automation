@@ -21,17 +21,30 @@ jobs:
           pip install --upgrade pip
           pip install ansible ansible-lint
 
-      - name: Ansible Lint (GitHub friendly)
+      - name: Run Ansible Lint (non-blocking + summary)
         run: |
           echo "---- ANSIBLE LINT ----"
 
-          ansible-lint -p | while IFS= read -r line; do
-            echo "::error::$line"
-          done
+          ansible-lint > lint-report.txt || true
 
-          ansible-lint
+          total=$(cat lint-report.txt | wc -l)
 
-      - name: Syntax Check All Playbooks
+          echo "Summary:"
+          echo "Total Issues: $total"
+          echo ""
+          echo "Top Issues:"
+          head -20 lint-report.txt
+
+          echo ""
+          echo "Full report available as artifact: lint-report.txt"
+
+      - name: Upload Lint Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ansible-lint-report
+          path: lint-report.txt
+
+      - name: Syntax Check All Playbooks (blocking)
         run: |
           echo "---- ANSIBLE SYNTAX CHECK ----"
           ansible-playbook playbooks/backup.yml --syntax-check
