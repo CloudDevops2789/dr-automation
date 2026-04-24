@@ -6,7 +6,7 @@
 
   tasks:
     # -----------------------------
-    # Validate environment variable FIRST # testing for github actions
+    # Validate environment variable FIRST
     # (prevents accidental prod backup to non-prod buckets)
     # -----------------------------
     - name: Validate environment variable
