@@ -21,12 +21,17 @@ jobs:
           pip install --upgrade pip
           pip install ansible ansible-lint
 
-      - name: Ansible Lint
+      - name: Ansible Lint (GitHub friendly)
         run: |
           echo "---- ANSIBLE LINT ----"
+
+          ansible-lint -p | while IFS= read -r line; do
+            echo "::error::$line"
+          done
+
           ansible-lint
 
-      - name: Syntax Check
+      - name: Syntax Check All Playbooks
         run: |
           echo "---- ANSIBLE SYNTAX CHECK ----"
           ansible-playbook playbooks/backup.yml --syntax-check
