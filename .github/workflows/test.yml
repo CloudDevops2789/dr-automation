@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - development
+      - main
+  pull_request:
+    branches:
+      - development
+      - main
   workflow_dispatch:
 
 jobs:
@@ -30,13 +35,13 @@ jobs:
 
           ansible-lint > lint-report.txt || true
 
-          total=$(cat lint-report.txt | wc -l)
+          total=$(wc -l < lint-report.txt)
 
           echo "Summary:"
           echo "Total Issues: $total"
           echo ""
           echo "Top Issues:"
-          head -20 lint-report.txt
+          head -20 lint-report.txt || true
 
           echo ""
           echo "Full report available as artifact: lint-report.txt"
